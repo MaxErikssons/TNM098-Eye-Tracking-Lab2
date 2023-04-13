@@ -37,7 +37,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
     }
 
     lineData.push({
-      index: i,
+      index: data[i].RecordingTimestamp / 1000,
       timeRed: timeRed / 1000,
       timeGreen: timeGreen / 1000,
       timeBlue: timeBlue / 1000,
