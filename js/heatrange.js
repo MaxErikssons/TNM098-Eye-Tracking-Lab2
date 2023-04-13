@@ -35,8 +35,8 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   // Create a data table.
   var tableData = [
     { color: 'Red', value: 0 },
-    { color: 'Blue', value: 0 },
     { color: 'Green', value: 0 },
+    { color: 'Blue', value: 0 },
     { color: 'Purple', value: 0 },
   ];
   var table = d3.select('table');
