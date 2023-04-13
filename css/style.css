@@ -11,6 +11,8 @@ table {
   th, td {
     padding: 5px;
     border: 1px solid black;
+    width: 100px;
+    height: 20px;
   }
   
   tr:nth-child(2n) {

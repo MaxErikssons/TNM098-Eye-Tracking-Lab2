@@ -8,7 +8,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   // set the dimensions and margins of the graph
   var margin = { top: 60, right: 30, bottom: 30, left: 60 },
     width = 900 - margin.left - margin.right,
-    height = 1000 - margin.top - margin.bottom;
+    height = 900 - margin.top - margin.bottom;
 
   //Get max x and y values.
   const { maxX, maxY } = getMaxValues(data);
@@ -32,49 +32,57 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
 
   // Iterate over the data and render one point at a time with a delay
   var i = 0;
-  d3.interval(function () {
-    if (i >= data.length) {
-      // Stop the animation when all points have been rendered
-      return true;
-    }
-    var d = data[i];
-    // Render the circle with a transition
-    scatter
-      .append('circle')
-      .attr('cx', function () {
-        return x(d['GazePointX(px)']);
-      })
-      .attr('cy', function () {
-        return y(d['GazePointY(px)']);
-      })
-      .attr('r', 5)
-      .style('fill', function () {
-        // Different color depending on which quadrant the point is located in.
-        if (d['GazePointX(px)'] < maxX / 2 && d['GazePointY(px)'] < maxY / 2) {
-          return colorScale1(d['GazeEventDuration(mS)']);
-        } else if (
-          d['GazePointX(px)'] >= maxX / 2 &&
-          d['GazePointY(px)'] < maxY / 2
-        ) {
-          return colorScale2(d['GazeEventDuration(mS)']);
-        } else if (
-          d['GazePointX(px)'] < maxX / 2 &&
-          d['GazePointY(px)'] >= maxY / 2
-        ) {
-          return colorScale3(d['GazeEventDuration(mS)']);
-        } else {
-          return colorScale4(d['GazeEventDuration(mS)']);
-        }
-      })
-      .transition()
-      .duration(d['GazeEventDuration(mS)'] / 2) // Set the transition duration
-      .attr('r', 20) // Increase the radius of the circle to 20 pixels
-      .transition()
-      .duration(d['GazeEventDuration(mS)'] / 2)
-      .attr('r', 5); // Decrease the radius back to 5 pixels
+  d3.interval(
+    function () {
+      if (i >= data.length) {
+        // Stop the animation when all points have been rendered
+        return true;
+      }
+      var d = data[i];
+      // Render the circle with a transition
+      scatter
+        .append('circle')
+        .attr('cx', function () {
+          return x(d['GazePointX(px)']);
+        })
+        .attr('cy', function () {
+          return y(d['GazePointY(px)']);
+        })
+        .attr('r', 5)
+        .style('fill', function () {
+          // Different color depending on which quadrant the point is located in.
+          if (
+            d['GazePointX(px)'] < maxX / 2 &&
+            d['GazePointY(px)'] < maxY / 2
+          ) {
+            return colorScale1(d['GazeEventDuration(mS)']);
+          } else if (
+            d['GazePointX(px)'] >= maxX / 2 &&
+            d['GazePointY(px)'] < maxY / 2
+          ) {
+            return colorScale2(d['GazeEventDuration(mS)']);
+          } else if (
+            d['GazePointX(px)'] < maxX / 2 &&
+            d['GazePointY(px)'] >= maxY / 2
+          ) {
+            return colorScale3(d['GazeEventDuration(mS)']);
+          } else {
+            return colorScale4(d['GazeEventDuration(mS)']);
+          }
+        })
+        .transition()
+        .duration(d['GazeEventDuration(mS)'] / 2) // Set the transition duration
+        .attr('r', 20) // Increase the radius of the circle to 20 pixels
+        .transition()
+        .duration(d['GazeEventDuration(mS)'] / 2)
+        .attr('r', 5); // Decrease the radius back to 5 pixels
 
-    i++;
-  }, data[i].RecordingTimestamp); // Set the interval delay
+      i++;
+    },
+    i === 0
+      ? data[i].RecordingTimestamp
+      : data[i].RecordingTimestamp - data[i - 1].RecordingTimestamp
+  ); // Set the interval delay
 
   // Add the X Axis
   scatter

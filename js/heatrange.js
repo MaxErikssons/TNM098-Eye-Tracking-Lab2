@@ -32,54 +32,12 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   // Define the number of squares per row
   var squaresPerRow = Math.floor(width / squareSize);
 
-  var { quadRed = 0, quadBlue = 0, quadGreen = 0, quadPurple = 0 } = {};
-
-  // Iterate over the FixationIndices and create a square for each
-  var squares = heatrange
-    .selectAll('rect')
-    .data(data)
-    .enter()
-    .append('rect')
-    .attr('x', function (d, i) {
-      // Calculate the x position of the square based on the FixationIndex
-      var column = i % squaresPerRow;
-      return column * squareSize;
-    })
-    .attr('y', function (d, i) {
-      // Calculate the y position of the square based on the FixationIndex
-      var row = Math.floor(i / squaresPerRow);
-      return row * squareSize;
-    })
-    .attr('width', squareSize)
-    .attr('height', squareSize)
-    .attr('fill', function (d) {
-      if (d['GazePointX(px)'] < maxX / 2 && d['GazePointY(px)'] < maxY / 2) {
-        quadRed += 1;
-        return colorScale1(d['GazeEventDuration(mS)']);
-      } else if (
-        d['GazePointX(px)'] >= maxX / 2 &&
-        d['GazePointY(px)'] < maxY / 2
-      ) {
-        quadGreen += 1;
-        return colorScale2(d['GazeEventDuration(mS)']);
-      } else if (
-        d['GazePointX(px)'] < maxX / 2 &&
-        d['GazePointY(px)'] >= maxY / 2
-      ) {
-        quadBlue += 1;
-        return colorScale3(d['GazeEventDuration(mS)']);
-      } else {
-        quadPurple += 1;
-        return colorScale4(d['GazeEventDuration(mS)']);
-      }
-    });
-
-  // Data
+  // Create a data table.
   var tableData = [
-    { color: 'Red', value: quadRed },
-    { color: 'Blue', value: quadBlue },
-    { color: 'Green', value: quadGreen },
-    { color: 'Purple', value: quadPurple },
+    { color: 'Red', value: 0 },
+    { color: 'Blue', value: 0 },
+    { color: 'Green', value: 0 },
+    { color: 'Purple', value: 0 },
   ];
   var table = d3.select('table');
 
@@ -111,8 +69,79 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
     .text(function (d) {
       return d;
     });
-  console.log('red: ' + quadRed);
-  console.log('green: ' + quadGreen);
-  console.log('blue: ' + quadBlue);
-  console.log('purple: ' + quadPurple);
+
+  // Iterate over the FixationIndices and create a square for each with a delay
+  var i = 0;
+  var squares = heatrange
+    .selectAll('rect')
+    .data(data)
+    .enter()
+    .append('rect')
+    .attr('x', function (d, i) {
+      // Calculate the x position of the square based on the FixationIndex
+      var column = i % squaresPerRow;
+      return column * squareSize;
+    })
+    .attr('y', function (d, i) {
+      // Calculate the y position of the square based on the FixationIndex
+      var row = Math.floor(i / squaresPerRow);
+      return row * squareSize;
+    })
+    .attr('width', squareSize)
+    .attr('height', squareSize);
+
+  d3.interval(
+    function () {
+      if (i >= data.length) {
+        // Stop the animation when all squares have been rendered
+        return true;
+      }
+
+      squares
+        .filter(function (d, j) {
+          return j === i;
+        }) // Select the square that corresponds to the current index
+        .attr('fill', function (d) {
+          if (
+            d['GazePointX(px)'] < maxX / 2 &&
+            d['GazePointY(px)'] < maxY / 2
+          ) {
+            tableData[0].value += 1;
+            return colorScale1(d['GazeEventDuration(mS)']);
+          } else if (
+            d['GazePointX(px)'] >= maxX / 2 &&
+            d['GazePointY(px)'] < maxY / 2
+          ) {
+            tableData[1].value += 1;
+            return colorScale2(d['GazeEventDuration(mS)']);
+          } else if (
+            d['GazePointX(px)'] < maxX / 2 &&
+            d['GazePointY(px)'] >= maxY / 2
+          ) {
+            tableData[2].value += 1;
+            return colorScale3(d['GazeEventDuration(mS)']);
+          } else {
+            tableData[3].value += 1;
+            return colorScale4(d['GazeEventDuration(mS)']);
+          }
+        })
+        .transition()
+        .duration(data[i]['GazeEventDuration(mS)'] / 2) // Set the transition duration
+        .style('opacity', 1); // Fade in the square with an opacity transition
+
+      // Update the table values
+      rows
+        .selectAll('td')
+        .data(function (d) {
+          return [d.color, d.value];
+        })
+        .text(function (d) {
+          return d;
+        });
+      i++;
+    },
+    i === 0
+      ? data[i].RecordingTimestamp
+      : data[i].RecordingTimestamp - data[i - 1].RecordingTimestamp
+  );
 });
