@@ -13,9 +13,9 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   //Get max x and y values.
   const { maxX, maxY } = getMaxValues(data);
 
-  // Create a heatmap
-  var heatmap = d3
-    .select('#heatmap')
+  // Create a scatter plot
+  var scatter = d3
+    .select('#scatter')
     .append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
@@ -30,45 +30,59 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   const { colorScale1, colorScale2, colorScale3, colorScale4 } =
     getColorScals(data);
 
-  heatmap
-    .selectAll('rect')
-    .data(data)
-    .enter()
-    .append('rect')
-    .attr('x', function (d) {
-      return x(d['GazePointX(px)']);
-    })
-    .attr('y', function (d) {
-      return y(d['GazePointY(px)']);
-    })
-    .attr('width', 10)
-    .attr('height', 10)
-    .style('fill', function (d) {
-      if (d['GazePointX(px)'] < maxX / 2 && d['GazePointY(px)'] < maxY / 2) {
-        return colorScale1(d['GazeEventDuration(mS)']);
-      } else if (
-        d['GazePointX(px)'] >= maxX / 2 &&
-        d['GazePointY(px)'] < maxY / 2
-      ) {
-        return colorScale2(d['GazeEventDuration(mS)']);
-      } else if (
-        d['GazePointX(px)'] < maxX / 2 &&
-        d['GazePointY(px)'] >= maxY / 2
-      ) {
-        return colorScale3(d['GazeEventDuration(mS)']);
-      } else {
-        return colorScale4(d['GazeEventDuration(mS)']);
-      }
-    });
+  // Iterate over the data and render one point at a time with a delay
+  var i = 0;
+  d3.interval(function () {
+    if (i >= data.length) {
+      // Stop the animation when all points have been rendered
+      return true;
+    }
+    var d = data[i];
+    // Render the circle with a transition
+    scatter
+      .append('circle')
+      .attr('cx', function () {
+        return x(d['GazePointX(px)']);
+      })
+      .attr('cy', function () {
+        return y(d['GazePointY(px)']);
+      })
+      .attr('r', 5)
+      .style('fill', function () {
+        // Different color depending on which quadrant the point is located in.
+        if (d['GazePointX(px)'] < maxX / 2 && d['GazePointY(px)'] < maxY / 2) {
+          return colorScale1(d['GazeEventDuration(mS)']);
+        } else if (
+          d['GazePointX(px)'] >= maxX / 2 &&
+          d['GazePointY(px)'] < maxY / 2
+        ) {
+          return colorScale2(d['GazeEventDuration(mS)']);
+        } else if (
+          d['GazePointX(px)'] < maxX / 2 &&
+          d['GazePointY(px)'] >= maxY / 2
+        ) {
+          return colorScale3(d['GazeEventDuration(mS)']);
+        } else {
+          return colorScale4(d['GazeEventDuration(mS)']);
+        }
+      })
+      .transition()
+      .duration(100) // Set the transition duration
+      .attr('r', 20) // Increase the radius of the circle to 20 pixels
+      .transition()
+      .duration(100)
+      .attr('r', 5); // Decrease the radius back to 5 pixels
+    i++;
+  }, 100); // Set the interval delay
 
   // Add the X Axis
-  heatmap
+  scatter
     .append('g')
     .attr('transform', 'translate(0,' + height + ')')
     .call(d3.axisBottom(x));
 
   // Add X Axis label
-  heatmap
+  scatter
     .append('text')
     .attr('text-anchor', 'end')
     .attr('x', width)
@@ -76,17 +90,17 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
     .text('X');
 
   // Add the Y Axis
-  heatmap.append('g').call(d3.axisLeft(y));
+  scatter.append('g').call(d3.axisLeft(y));
 
   // Add Y Axis label
-  heatmap
+  scatter
     .append('text')
     .attr('text-anchor', 'end')
     .attr('y', -margin.left + 20)
     .text('Y');
 
   // Add midpoint lines
-  heatmap
+  scatter
     .append('g')
     .attr('class', 'midpoint')
     .append('line')
@@ -97,7 +111,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
     .style('stroke', 'black')
     .style('stroke-width', '2px');
 
-  heatmap
+  scatter
     .append('g')
     .attr('class', 'midpoint')
     .append('line')
