@@ -67,13 +67,14 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
         }
       })
       .transition()
-      .duration(100) // Set the transition duration
+      .duration(d['GazeEventDuration(mS)'] / 2) // Set the transition duration
       .attr('r', 20) // Increase the radius of the circle to 20 pixels
       .transition()
-      .duration(100)
+      .duration(d['GazeEventDuration(mS)'] / 2)
       .attr('r', 5); // Decrease the radius back to 5 pixels
+
     i++;
-  }, 100); // Set the interval delay
+  }, data[i].RecordingTimestamp); // Set the interval delay
 
   // Add the X Axis
   scatter
