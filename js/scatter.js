@@ -7,7 +7,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
 
   // set the dimensions and margins of the graph
   var margin = { top: 60, right: 30, bottom: 30, left: 60 },
-    width = 900 - margin.left - margin.right,
+    width = 800 - margin.left - margin.right,
     height = 900 - margin.top - margin.bottom;
 
   //Get max x and y values.

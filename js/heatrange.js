@@ -34,10 +34,10 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
 
   // Create a data table.
   var tableData = [
-    { color: 'Red', value: 0 },
-    { color: 'Green', value: 0 },
-    { color: 'Blue', value: 0 },
-    { color: 'Purple', value: 0 },
+    { color: 'Red', value: 0, time: 0 },
+    { color: 'Green', value: 0, time: 0 },
+    { color: 'Blue', value: 0, time: 0 },
+    { color: 'Purple', value: 0, time: 0 },
   ];
   var table = d3.select('table');
 
@@ -45,7 +45,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   var header = table.append('thead').append('tr');
   header
     .selectAll('th')
-    .data(['color', 'Value'])
+    .data(['color', 'Value', 'time'])
     .enter()
     .append('th')
     .text(function (d) {
@@ -62,7 +62,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
   rows
     .selectAll('td')
     .data(function (d) {
-      return [d.color, d.value];
+      return [d.color, d.value, d.time];
     })
     .enter()
     .append('td')
@@ -106,21 +106,25 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
             d['GazePointX(px)'] < maxX / 2 &&
             d['GazePointY(px)'] < maxY / 2
           ) {
+            tableData[0].time += d['GazeEventDuration(mS)'];
             tableData[0].value += 1;
             return colorScale1(d['GazeEventDuration(mS)']);
           } else if (
             d['GazePointX(px)'] >= maxX / 2 &&
             d['GazePointY(px)'] < maxY / 2
           ) {
+            tableData[1].time += d['GazeEventDuration(mS)'];
             tableData[1].value += 1;
             return colorScale2(d['GazeEventDuration(mS)']);
           } else if (
             d['GazePointX(px)'] < maxX / 2 &&
             d['GazePointY(px)'] >= maxY / 2
           ) {
+            tableData[2].time += d['GazeEventDuration(mS)'];
             tableData[2].value += 1;
             return colorScale3(d['GazeEventDuration(mS)']);
           } else {
+            tableData[3].time += d['GazeEventDuration(mS)'];
             tableData[3].value += 1;
             return colorScale4(d['GazeEventDuration(mS)']);
           }
@@ -133,7 +137,7 @@ d3.dsv(';', 'eye_tracking_data.csv').then(function (data) {
       rows
         .selectAll('td')
         .data(function (d) {
-          return [d.color, d.value];
+          return [d.color, d.value, d.time / 1000];
         })
         .text(function (d) {
           return d;
